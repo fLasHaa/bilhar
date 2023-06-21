@@ -13,23 +13,32 @@ public class PlayerController : MonoBehaviour
     public LayerMask myLayerMask;
     public Text txtCubos;
     public Text txtTimeLeft;
-    private float timeLeft = 20.0f;
+    [SerializeField] private float timeLeft = 20.0f;
+    public GameObject txtGameOver;
+    private bool Playing;
+    private int Contar = 0;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        Playing = true;
     }
 
     private void LateUpdate()
     {
         if (cubos == 0)
         {
-            GerarCubos(MaxCubos);
+            GerarCubos(MaxCubos + Contar);
             ApagarCubos();
+            Contar = Contar + 5;
+            
+            //timeLeft = cubos;
         }
         txtCubos.text = cubos.ToString();
     }
+
+   
 
     void ApagarCubos()
     {
@@ -42,7 +51,7 @@ public class PlayerController : MonoBehaviour
                 Destroy(osCubos[i]);
             }
         }
-        Debug.Log(osCubos.Length);
+        //cubos = osCubos.Length;
     }
 
     void GerarCubos(int quantos)
@@ -58,12 +67,30 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        float moveH = Input.GetAxis("Horizontal");
-        float moveV = Input.GetAxis("Vertical");
-        Vector3 movimento = new Vector3(moveH, 0.0f, moveV);
-        rb.AddForce(movimento * Speed);
+        if (Playing == true)
+        {
+            float moveH = Input.GetAxis("Horizontal");
+            float moveV = Input.GetAxis("Vertical");
+            Vector3 movimento = new Vector3(moveH, 0.0f, moveV);
+            rb.AddForce(movimento * Speed);
+            timeLeft -= Time.deltaTime;
+            txtTimeLeft.text = Mathf.Floor(timeLeft).ToString();
+            timeLeft = timeLeft + 10.0f;
+            if (timeLeft <= 0)
+            {
+                GameObject[] osCubos = GameObject.FindGameObjectsWithTag("Cubo");
+                for (int i = 0; i < osCubos.Length; i++)
+                {
+                    Destroy(osCubos[i]);
+                }
+                txtGameOver.SetActive(true);
+                txtTimeLeft.text = "0";
+                Playing = false;
 
 
+                //GameOver
+            }
+        }
     }
 
     private void OnTriggerEnter(Collider other)
